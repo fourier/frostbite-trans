@@ -4,6 +4,9 @@ import sys
 import queue
 import time
 import re
+import logging
+
+# Local imports
 import evnt
 
 INTERRUPTED = False
@@ -16,16 +19,17 @@ class StreamReader(object):
     room_title_matcher = re.compile("^\[.+\]\n")
     
     def __init__(self,q):
+        logging.basicConfig(level=logging.DEBUG)
+        self.logger = logging.getLogger(__name__)
         self.socket = None
         self.queue = q
         
     def start(self):
         while not INTERRUPTED:
             self.connect_and_read()
-#            print("Sleeping 1 sec...")
             time.sleep(1)
             
-        print("Exiting")
+        self.logger.debug("Exiting StreamReader")
         
     def connect_and_read(self):
         try:
@@ -36,7 +40,6 @@ class StreamReader(object):
             # Read from socket and accumulate
             while not INTERRUPTED:
                 data = self.socket.recv(StreamReader.buf_size)
-#                print("Recv returned %d bytes" % len(data))
                 if data:
                     buffer += bytes.decode(data, 'UTF-8')
                     if len(data) < StreamReader.buf_size:
@@ -48,13 +51,14 @@ class StreamReader(object):
                     break
         except BaseException as e:
             None
-#        print("Closing StreamReader socket")
         self.socket.close()
 
     def process_data(self, buffer):
         m = StreamReader.room_title_matcher.match(buffer)
         if m:
-            print(m.group())
-            self.queue.put(evnt.GetRoomDesc(m.group()))
+            txt = m.group().rstrip()
+            self.logger.debug("Changed room: %s" % txt)
+            # Notify the ApiClient that the room has been changed
+            self.queue.put(evnt.GetRoomDesc(txt))
             
             

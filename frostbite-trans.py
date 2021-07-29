@@ -13,18 +13,22 @@ import transsvc
 from threading import Thread
 from queue import Queue
 
-q1 = Queue()
-q2 = Queue()
+# First queue: events from StreamReader -> ApiClient
+# and TranslationService -> ApiClient
+apiclient_input_queue = Queue()
+# Second queue: events from ApiClient -> TranslationService
+apiclient_output_queue = Queue()
 
 def main():
-    streamReader = streamreader.StreamReader(q1)
-    apiClient = apiclient.ApiClient(q1,q2)
+    streamReader = streamreader.StreamReader(apiclient_input_queue)
+    apiClient = apiclient.ApiClient(apiclient_input_queue,apiclient_output_queue)
+    translationService = transsvc.TranslationService(apiclient_output_queue, apiclient_input_queue)
     
     t1 = threading.Thread(target = streamReader.start)
     t2 = threading.Thread(target = apiClient.start)
     t1.start()
     t2.start()
-    transsvc.trans(q1,q2)
+    translationService.start()
     threading.current_thread().join()
 
 if __name__ == "__main__":
