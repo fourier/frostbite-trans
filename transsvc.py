@@ -5,8 +5,10 @@ from google.cloud import translate
 # Local imports
 import evnt
 
-
 class TranslationService(object):
+    GOOGLE_PROJECT_ID = "myproject"
+    GOOGLE_PROJECT_LOCATION = "global"
+    
     def __init__(self, input_queue, output_queue):
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(__name__)
@@ -32,7 +34,10 @@ class TranslationService(object):
                 if not translation:
                     self.logger.debug("Translation not found in database")
                     translation = self.get_translation(ev.text)
-                    self.store_translation(ev.text, translation)
+                    if not translation:
+                        translation = ev.text
+                    else:
+                        self.store_translation(ev.text, translation)
                 self.output_queue.put(evnt.SendTranslation(ev.text, translation ))
             else:
                 self.logger.error("Unknown event")
@@ -52,4 +57,27 @@ class TranslationService(object):
         self.db.commit()
 
     def get_translation(self, text):
-        return "Перевод: " + text
+        """Translating Text. Based on
+        https://github.com/googleapis/python-translate/blob/master/samples/snippets/translate_v3_translate_text.py"""
+        try:
+            project_id = TranslationService.GOOGLE_PROJECT_ID
+            client = translate.TranslationServiceClient()
+            location = TranslationService.GOOGLE_PROJECT_LOCATION
+            parent = f"projects/{project_id}/locations/{location}"
+            # Detail on supported types can be found here:
+            # https://cloud.google.com/translate/docs/supported-formats
+            response = client.translate_text(
+                request={
+                    "parent": parent,
+                    "contents": [text],
+                    "mime_type": "text/plain",  # mime types: text/plain, text/html
+                    "source_language_code": "en-US",
+                    "target_language_code": "ru",
+                    }
+                )
+            if len(response.translations) == 1:
+                return translation.translated_text[0]
+        except:
+            self.logger.error("Unable to get translation")
+        return None
+
