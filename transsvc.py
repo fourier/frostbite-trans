@@ -1,7 +1,7 @@
 import logging
 import hashlib
 import sqlite3
-
+from google.cloud import translate
 # Local imports
 import evnt
 
