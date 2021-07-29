@@ -4,10 +4,13 @@ import sys
 import queue
 import time
 import re
+import urllib
+import urllib.parse
+# Local imports
 import evnt
 
 INTERRUPTED = False
-API_SERVER_PORT = 10001
+API_SERVER_PORT = 3001
 
 class ApiClient(object):
     """Reader of the stream events from Frostbite."""    
@@ -32,12 +35,18 @@ class ApiClient(object):
             # Recreate and connect closed socket
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
             self.socket.connect(ApiClient.server_address)
+            # Create a translation window on a client
+            print("Sending request to create window...")
+            self.socket.send(str.encode("CLIENT WINDOW_ADD?trans&Translation\n"))
+            data = self.socket.recv(ApiClient.buf_size)
+            print("Reply: %s" % bytes.decode(data, 'UTF-8'))
             buffer = ''
             # Read from socket and accumulate
             while not INTERRUPTED:
                 ev = self.read_queue.get()
                 if type(ev) == evnt.GetRoomDesc:
-                    self.socket.send(str.encode("GET ROOM_DESC"))
+                    print("Sending request to get room desc...")
+                    self.socket.send(str.encode("GET ROOM_DESC\n"))
                     data = self.socket.recv(ApiClient.buf_size)
                     if data:
                         txt = bytes.decode(data, 'UTF-8')
@@ -47,10 +56,19 @@ class ApiClient(object):
                         # socket is closed
                         break
                 elif type(ev) == evnt.SendTranslation:
-                    print(ev.translation)
+                    print("Sending request to clear window...")
+                    self.socket.send(str.encode("CLIENT WINDOW_CLEAR?trans\n"))
+                    data = self.socket.recv(ApiClient.buf_size)
+                    print("Reply: %s" % bytes.decode(data, 'UTF-8'))
+                    txt = urllib.parse.quote(ev.translation)
+                    print("Sending request to write to window...")
+                    self.socket.send(str.encode("CLIENT WINDOW_WRITE?trans&" + txt + "\n"))
+                    data = self.socket.recv(ApiClient.buf_size)
+                    print("Reply: %s" % bytes.decode(data, 'UTF-8'))
+                    
                     
         except BaseException as e:
-            None
+            print(e)
 #        print("Closing StreamReader socket")
         self.socket.close()
             
