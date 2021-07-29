@@ -4,15 +4,15 @@ import sys
 import queue
 import time
 import re
+import evnt
 
 INTERRUPTED = False
-STREAM_PORT = 4242
-API_SERVER_PORT = 3001
+STREAM_PORT = 10000
 
 class StreamReader(object):
     """Reader of the stream events from Frostbite."""    
     server_address = ('localhost', STREAM_PORT)
-    buf_size = 10
+    buf_size = 4096
     room_title_matcher = re.compile("^\[.+\]\n")
     
     def __init__(self,q):
@@ -55,6 +55,6 @@ class StreamReader(object):
         m = StreamReader.room_title_matcher.match(buffer)
         if m:
             print(m.group())
-            self.queue.put(m.group())
+            self.queue.put(evnt.GetRoomDesc(m.group()))
             
             
