@@ -6,7 +6,7 @@ from google.cloud import translate
 import evnt
 
 class TranslationService(object):
-    GOOGLE_PROJECT_ID = "myproject"
+    GOOGLE_PROJECT_ID = "clear-shadow-321318"
     GOOGLE_PROJECT_LOCATION = "global"
     
     def __init__(self, input_queue, output_queue):
@@ -74,9 +74,9 @@ class TranslationService(object):
                     "source_language_code": "en-US",
                     "target_language_code": "ru",
                     }
-                )
+                    )
             if len(response.translations) == 1:
-                return translation.translated_text[0]
+                return response.translations[0].translated_text
         except:
             self.logger.error("Unable to get translation")
         return None
