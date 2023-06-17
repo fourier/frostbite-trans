@@ -1,16 +1,11 @@
-# Translation service for Frostbite Dragonrealms frontend.
+# Give Up GitHub
 
-## Installation and development environment
+This project has given up GitHub.  ([See Software Freedom Conservancy's *Give Up  GitHub* site for details](https://GiveUpGitHub.org).)
 
-Following [this link](https://cloud.google.com/python/docs/setup#linux):
-```
-sudo apt-get install python3-venv
-python3 -m venv env
-source env/bin/activate
-pip install -r requirements.txt
-```
+You can now find this project at [https://codeberg.org/fourier/frostbite-trans](https://codeberg.org/fourier/frostbite-trans) instead.
 
-## Running
-```
-python frostbite-trans.py
-```
+Any use of this project's code by GitHub Copilot, past or present, is done without our permission.  We do not consent to GitHub's use of this project's code in Copilot.
+
+Join us; you can [give up GitHub](https://GiveUpGitHub.org) too!
+
+![Logo of the GiveUpGitHub campaign](https://sfconservancy.org/img/GiveUpGitHub.png)
